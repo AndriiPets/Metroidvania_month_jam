@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bd310yq2lkqny"]
+
+[ext_resource type="Script" uid="uid://2gxkqsvl7oiq" path="res://Gameplay/Components/Particles/VFXInstance/vfx_instance.gd" id="1_8l454"]
+
+[node name="VfxInstance" type="Node"]
+script = ExtResource("1_8l454")

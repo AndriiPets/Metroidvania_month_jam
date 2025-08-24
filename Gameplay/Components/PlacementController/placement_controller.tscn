@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://xxbo4usm0goq"]
+
+[ext_resource type="Script" uid="uid://dxyr2gmm41vpc" path="res://Gameplay/Components/PlacementController/placement_controller.gd" id="1_bmt1t"]
+
+[node name="PlacementController" type="Node2D"]
+script = ExtResource("1_bmt1t")

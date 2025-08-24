@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://b10025gs2lw1m"]
+
+[ext_resource type="Texture2D" uid="uid://rd0l416vayk7" path="res://Assets/sprites/world_tileset.png" id="1_sf3xs"]
+[ext_resource type="Script" uid="uid://dyfc86t8u2qk8" path="res://Gameplay/Components/Exit/exit_point.gd" id="1_sywh4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sywh4"]
+size = Vector2(16, 16)
+
+[node name="Exit" type="Area2D"]
+collision_layer = 4
+collision_mask = 24
+script = ExtResource("1_sywh4")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_sf3xs")
+hframes = 16
+vframes = 16
+frame = 50
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_sywh4")

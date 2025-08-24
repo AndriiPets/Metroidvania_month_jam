@@ -1,0 +1,53 @@
+[gd_scene load_steps=8 format=3 uid="uid://cylaal0fc784t"]
+
+[ext_resource type="PackedScene" uid="uid://bd310yq2lkqny" path="res://Gameplay/Components/Particles/VFXInstance/vfx_instance.tscn" id="1_pyuki"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ldot7"]
+blend_mode = 1
+light_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_em741"]
+offsets = PackedFloat32Array(0.928571, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_5riwb"]
+gradient = SubResource("Gradient_em741")
+width = 8
+height = 8
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Curve" id="Curve_mom14"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ly3oy"]
+curve = SubResource("Curve_mom14")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_fccio"]
+particle_flag_disable_z = true
+angle_min = 1.07288e-05
+angle_max = 1.07288e-05
+direction = Vector3(0, -1, 0)
+spread = 10.0
+initial_velocity_min = 20.0
+initial_velocity_max = 80.0
+gravity = Vector3(0, 98, 0)
+scale_min = 0.3
+scale_max = 1.5
+scale_curve = SubResource("CurveTexture_ly3oy")
+
+[node name="Takeoff" type="GPUParticles2D"]
+material = SubResource("CanvasItemMaterial_ldot7")
+emitting = false
+amount = 32
+texture = SubResource("GradientTexture2D_5riwb")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+randomness = 0.8
+process_material = SubResource("ParticleProcessMaterial_fccio")
+
+[node name="VfxInstance" parent="." instance=ExtResource("1_pyuki")]
+vfx_id = "takeoff"

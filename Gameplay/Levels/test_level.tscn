@@ -1,0 +1,22 @@
+[gd_scene load_steps=6 format=3 uid="uid://dhf54lbm17r7u"]
+
+[ext_resource type="PackedScene" uid="uid://dc1wladt4tku5" path="res://Gameplay/Objects/Player/player.tscn" id="1_jo2cc"]
+[ext_resource type="Script" uid="uid://lppj2h7nfxi5" path="res://Gameplay/Levels/test_level.gd" id="1_o3lgx"]
+[ext_resource type="PackedScene" uid="uid://xxbo4usm0goq" path="res://Gameplay/Components/PlacementController/placement_controller.tscn" id="3_l60vd"]
+[ext_resource type="PackedScene" uid="uid://f2xsf1i77kcu" path="res://Gameplay/Components/RoomDraftUI/room_draft_ui.tscn" id="4_c38ug"]
+[ext_resource type="PackedScene" uid="uid://dpdjsti6pg4na" path="res://Gameplay/Components/Camera/custom_camera.tscn" id="5_licoy"]
+
+[node name="TestLevel" type="Node2D"]
+script = ExtResource("1_o3lgx")
+
+[node name="Player" parent="." instance=ExtResource("1_jo2cc")]
+position = Vector2(11, 11)
+
+[node name="PlacementController" parent="." instance=ExtResource("3_l60vd")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="RoomDraftUi" parent="CanvasLayer" instance=ExtResource("4_c38ug")]
+
+[node name="CustomCamera" parent="." node_paths=PackedStringArray("target") instance=ExtResource("5_licoy")]
+target = NodePath("../Player")

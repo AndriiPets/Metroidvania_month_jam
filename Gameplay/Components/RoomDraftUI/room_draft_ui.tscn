@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3 uid="uid://f2xsf1i77kcu"]
+
+[ext_resource type="Script" uid="uid://d2m0r1c3oi8vi" path="res://Gameplay/Components/RoomDraftUI/room_draft_ui.gd" id="1_khib4"]
+
+[node name="RoomDraftUi" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_khib4")
+
+[node name="OptionsContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+alignment = 1
+
+[node name="Option1" type="HBoxContainer" parent="OptionsContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="OptionsContainer/Option1"]
+layout_mode = 2
+text = "option1"
+
+[node name="Option2" type="HBoxContainer" parent="OptionsContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="OptionsContainer/Option2"]
+layout_mode = 2
+text = "option2"
+
+[node name="Option3" type="HBoxContainer" parent="OptionsContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="OptionsContainer/Option3"]
+layout_mode = 2
+text = "option3"

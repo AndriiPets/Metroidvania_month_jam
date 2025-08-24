@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RoomData" load_steps=6 format=3 uid="uid://i7c0m38c8ar2"]
+
+[ext_resource type="Script" uid="uid://doen3w347hmpa" path="res://Gameplay/Components/ResourceScripts/exit_data.gd" id="1_wwi3b"]
+[ext_resource type="Script" uid="uid://63av2rkmmoi1" path="res://Gameplay/Components/ResourceScripts/room_data.gd" id="2_53mwb"]
+[ext_resource type="PackedScene" uid="uid://dwfnuaw0dgh41" path="res://Gameplay/Levels/Rooms/test_room_1.tscn" id="2_ch8kk"]
+
+[sub_resource type="Resource" id="Resource_n3i8n"]
+script = ExtResource("1_wwi3b")
+position = Vector2(200, 104)
+direction = 0
+
+[sub_resource type="Resource" id="Resource_2fmnr"]
+script = ExtResource("1_wwi3b")
+position = Vector2(-200, 104)
+direction = 1
+
+[resource]
+script = ExtResource("2_53mwb")
+scene = ExtResource("2_ch8kk")
+room_type = 0
+size_units = Vector2(1, 1)
+exits = Array[ExtResource("1_wwi3b")]([SubResource("Resource_n3i8n"), SubResource("Resource_2fmnr")])
