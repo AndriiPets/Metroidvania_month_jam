@@ -1,5 +1,5 @@
-extends RefCounted # Changed from RefCounted to be a Node attached to enemies
-class_name HealthDataComponent
+extends Node # Changed from RefCounted to be a Node attached to enemies
+class_name HealthComponent
 
 signal health_changed(old_val: float, new_val: float)
 signal died
@@ -19,3 +19,4 @@ func _ready():
 ## This is the new, type-safe damage function.
 func take_damage(attack: AttackData):
 	self.current_health -= attack.damage
+	print(get_owner().name, " took ", attack.damage, " damage! Health is now ", current_health)

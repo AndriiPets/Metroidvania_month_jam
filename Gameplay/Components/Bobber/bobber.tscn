@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bji4uoxn6bckr"]
+
+[ext_resource type="Script" uid="uid://dkaw2541mf5hl" path="res://Gameplay/Components/Bobber/bobber.gd" id="1_rhsy0"]
+
+[node name="Bobber" type="Node"]
+script = ExtResource("1_rhsy0")

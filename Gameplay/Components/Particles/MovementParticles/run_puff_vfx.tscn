@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cwgf5a1aelx4j"]
+[gd_scene load_steps=10 format=3 uid="uid://cwgf5a1aelx4j"]
 
 [ext_resource type="PackedScene" uid="uid://bd310yq2lkqny" path="res://Gameplay/Components/Particles/VFXInstance/vfx_instance.tscn" id="1_4223i"]
 
@@ -18,6 +18,12 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(1, 0.5)
 
+[sub_resource type="Gradient" id="Gradient_4223i"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_00p0k"]
+gradient = SubResource("Gradient_4223i")
+
 [sub_resource type="Curve" id="Curve_mom14"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
@@ -31,11 +37,13 @@ angle_min = 1.07288e-05
 angle_max = 1.07288e-05
 direction = Vector3(0, -1, 0)
 flatness = 1.0
-initial_velocity_min = 50.0
-initial_velocity_max = 90.0
+initial_velocity_min = 30.0
+initial_velocity_max = 70.0
 gravity = Vector3(0, 98, 0)
 scale_min = 0.2
+scale_max = 0.8
 scale_curve = SubResource("CurveTexture_ly3oy")
+color_ramp = SubResource("GradientTexture1D_00p0k")
 
 [node name="Run" type="GPUParticles2D"]
 material = SubResource("CanvasItemMaterial_ldot7")

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="SpreadPatternStrategy" load_steps=2 format=3 uid="uid://csohmt8j11mpk"]
+
+[ext_resource type="Script" uid="uid://do0hppnne5t1d" path="res://Gameplay/Components/WeaponSystem/Strategies/spread_pattern_three.gd" id="1_j8al8"]
+
+[resource]
+script = ExtResource("1_j8al8")
+spread_angle_degrees = 30.0
+priority = 100
+metadata/_custom_type_script = "uid://do0hppnne5t1d"

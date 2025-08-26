@@ -21,5 +21,5 @@ func _ready() -> void:
 
 	# Self-destruction logic: queue_free the parent (the whole effect)
 	if is_instance_valid(vfx_node):
-		print("VFX ", vfx_id, " i am killing myself")
+		#print("VFX ", vfx_id, " i am killing myself")
 		vfx_node.queue_free()

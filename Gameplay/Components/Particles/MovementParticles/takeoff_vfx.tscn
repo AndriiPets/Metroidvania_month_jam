@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cylaal0fc784t"]
+[gd_scene load_steps=10 format=3 uid="uid://cylaal0fc784t"]
 
 [ext_resource type="PackedScene" uid="uid://bd310yq2lkqny" path="res://Gameplay/Components/Particles/VFXInstance/vfx_instance.tscn" id="1_pyuki"]
 
@@ -17,6 +17,12 @@ height = 8
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_pyuki"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_3w82y"]
+gradient = SubResource("Gradient_pyuki")
 
 [sub_resource type="Curve" id="Curve_mom14"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -37,6 +43,7 @@ gravity = Vector3(0, 98, 0)
 scale_min = 0.3
 scale_max = 1.5
 scale_curve = SubResource("CurveTexture_ly3oy")
+color_ramp = SubResource("GradientTexture1D_3w82y")
 
 [node name="Takeoff" type="GPUParticles2D"]
 material = SubResource("CanvasItemMaterial_ldot7")

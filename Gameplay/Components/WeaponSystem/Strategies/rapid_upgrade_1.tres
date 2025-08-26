@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FireRateUpgradeStrategy" load_steps=2 format=3 uid="uid://c6eyxcae571no"]
+
+[ext_resource type="Script" uid="uid://b8r4y8fwdmnee" path="res://Gameplay/Components/WeaponSystem/Strategies/fire_rate_update.gd" id="1_5qsme"]
+
+[resource]
+script = ExtResource("1_5qsme")
+reduction_amount = 0.3
+priority = 100
+metadata/_custom_type_script = "uid://b8r4y8fwdmnee"

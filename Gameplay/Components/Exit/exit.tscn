@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://dyfc86t8u2qk8" path="res://Gameplay/Components/Exit/exit_point.gd" id="1_sywh4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sywh4"]
-size = Vector2(16, 16)
+size = Vector2(32, 32)
 
 [node name="Exit" type="Area2D"]
 collision_layer = 4
@@ -13,9 +13,9 @@ script = ExtResource("1_sywh4")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_sf3xs")
-hframes = 16
-vframes = 16
-frame = 50
+hframes = 8
+vframes = 8
+frame = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_sywh4")

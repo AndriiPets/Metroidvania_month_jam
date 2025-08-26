@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DamageUpgradeStrategy" load_steps=2 format=3 uid="uid://dd18nuvy4765"]
+
+[ext_resource type="Script" uid="uid://dm8setkh437e7" path="res://Gameplay/Components/WeaponSystem/Strategies/damage_upgrade.gd" id="1_r4gds"]
+
+[resource]
+script = ExtResource("1_r4gds")
+damage_increase = 5.0
+priority = 100
+metadata/_custom_type_script = "uid://dm8setkh437e7"

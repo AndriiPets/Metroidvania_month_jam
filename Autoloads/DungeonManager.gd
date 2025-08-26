@@ -8,7 +8,7 @@ signal draft_options_ready(options, exit_data)
 signal preview_room_updated(room_data)
 signal placement_ended
 
-const CELL_SIZE := Vector2(16, 16)
+const CELL_SIZE := Vector2(32, 32)
 
 var room_database: Array[RoomData] = []
 var attached_node: Node = null

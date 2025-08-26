@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://6nx3qwdn8iu2"]
+
+[ext_resource type="Script" uid="uid://dkq7v3k5e6fca" path="res://Gameplay/Components/Squasher/squasher.gd" id="1_d4uby"]
+
+[node name="Squasher" type="Node"]
+script = ExtResource("1_d4uby")

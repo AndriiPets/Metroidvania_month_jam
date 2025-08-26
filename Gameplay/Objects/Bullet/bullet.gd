@@ -1,20 +1,23 @@
 extends CharacterBody2D
 class_name Bullet
 
-var dir: Vector2 = Vector2.ZERO
-var speed: float = 100.0
-var pos: Vector2 = Vector2.ZERO
+@onready var sprite := %Sprite
 
-func launch(bullet_pos: Vector2, bullet_direction: Vector2, bullet_speed: float) -> void:
-	position = bullet_pos
-	dir = bullet_direction
-	speed = bullet_speed
-	velocity = dir * speed
+var attack_data: AttackData # The bullet now holds its own attack data.
 
-func _ready() -> void:
-	pass
+func launch(spawn_pos: Vector2, direction: Vector2, data: AttackData) -> void:
+	position = spawn_pos
+	attack_data = data
+	velocity = direction * attack_data.speed
+	look_at(position + direction)
 
 func _physics_process(delta: float) -> void:
 	var collision := move_and_collide(velocity * delta)
 	if collision:
+		var collider = collision.get_collider()
+		# You can check for a group or a specific class here.
+		# A better way is to check if it has a HealthComponent.
+		if collider.has_method("take_damage"):
+			collider.take_damage(attack_data)
+		
 		queue_free()

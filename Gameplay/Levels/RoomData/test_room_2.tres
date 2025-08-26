@@ -4,14 +4,14 @@
 [ext_resource type="Script" uid="uid://63av2rkmmoi1" path="res://Gameplay/Components/ResourceScripts/room_data.gd" id="2_tlm4n"]
 [ext_resource type="PackedScene" uid="uid://shjkxyyybnsm" path="res://Gameplay/Levels/Rooms/test_room_2.tscn" id="2_ypi0e"]
 
-[sub_resource type="Resource" id="Resource_3nwpx"]
+[sub_resource type="Resource" id="Resource_tlm4n"]
 script = ExtResource("1_u6css")
-position = Vector2(-232, -55)
+position = Vector2(-239, -47)
 direction = 1
 
-[sub_resource type="Resource" id="Resource_j601t"]
+[sub_resource type="Resource" id="Resource_ypi0e"]
 script = ExtResource("1_u6css")
-position = Vector2(215, 265)
+position = Vector2(208, 272)
 direction = 0
 
 [resource]
@@ -19,4 +19,4 @@ script = ExtResource("2_tlm4n")
 scene = ExtResource("2_ypi0e")
 room_type = 0
 size_units = Vector2(1, 1)
-exits = Array[ExtResource("1_u6css")]([SubResource("Resource_3nwpx"), SubResource("Resource_j601t")])
+exits = Array[ExtResource("1_u6css")]([SubResource("Resource_tlm4n"), SubResource("Resource_ypi0e")])
