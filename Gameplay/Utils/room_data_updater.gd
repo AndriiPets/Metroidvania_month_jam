@@ -62,34 +62,40 @@ func _create_or_update_room_data():
 	# --- 2. Update All Properties ---
 	print("Updating RoomData properties...")
 	
-	# Update Scene Link
-	room_data.scene = load(scene_path)
-	
-	# Update Room Type
+	room_data.scene_path = scene_path
 	room_data.room_type = room_type
 
-	# Update Dimensions
 	var tilemap_node = _find_tilemap_node(scene_root)
 	if tilemap_node:
 		var used_rect = tilemap_node.get_used_rect()
-		# Add a 1-unit buffer for consistency, as rect starts at 0,0
 		room_data.size_units = used_rect.size + Vector2i.ONE
 		print("  - Updated dimensions to: ", room_data.size_units)
 	else:
 		push_warning("Could not find a TileMapLayer node to calculate room dimensions.")
 
+	# --- MODIFIED BLOCK START ---
 	# Update Exits
-	var new_exits_array: Array[ExitData] = []
-	var exit_nodes: Array = _find_exit_point_nodes(scene_root)
+	var doorway_nodes: Array[Doorway] = _find_doorway_nodes(scene_root)
 	
-	for exit_node in exit_nodes:
+	# Sort doorways by their index to ensure a consistent order in the data array
+	doorway_nodes.sort_custom(func(a, b): return a.exit_index < b.exit_index)
+	
+	var new_exits_array: Array[ExitData] = []
+	for i in range(doorway_nodes.size()):
+		var doorway_node = doorway_nodes[i]
+		
+		# Validation check
+		if doorway_node.exit_index != i:
+			push_warning("Doorway exit_index mismatch in %s. Expected index %s but got %s. Check for duplicate or missing indices." % [scene_path, i, doorway_node.exit_index])
+
 		var new_exit_data = ExitData.new()
-		new_exit_data.position = exit_node.position
-		new_exit_data.direction = exit_node.direction
+		new_exit_data.position = doorway_node.position
+		new_exit_data.direction = doorway_node.direction
 		new_exits_array.append(new_exit_data)
 	
 	room_data.exits = new_exits_array
-	print("  - Found and updated %d exits." % exit_nodes.size())
+	print("  - Found and updated %d exits." % doorway_nodes.size())
+	# --- MODIFIED BLOCK END ---
 
 	# --- 3. Save the Changes ---
 	var final_save_err = ResourceSaver.save(room_data)
@@ -98,7 +104,6 @@ func _create_or_update_room_data():
 	else:
 		print("Successfully updated and saved RoomData for: ", room_data.resource_path)
 
-	# Notify the editor that properties have changed to refresh the inspector.
 	update_configuration_warnings()
 
 # --- Helper Functions to find nodes ---
@@ -112,12 +117,12 @@ func _find_tilemap_node(start_node: Node) -> TileMap:
 			return found
 	return null
 
-func _find_exit_point_nodes(start_node: Node) -> Array:
-	var found_nodes := []
-	if start_node is ExitPoint:
+func _find_doorway_nodes(start_node: Node) -> Array[Doorway]:
+	var found_nodes: Array[Doorway] = []
+	if start_node is Doorway:
 		found_nodes.append(start_node)
 	
 	for child in start_node.get_children():
-		found_nodes.append_array(_find_exit_point_nodes(child))
+		found_nodes.append_array(_find_doorway_nodes(child))
 	
 	return found_nodes

@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=4 uid="uid://dg13b4iw7b28e"]
+
+[ext_resource type="TileSet" uid="uid://cat54jolovs6j" path="res://Assets/sprites/room.tres" id="1_7mld1"]
+[ext_resource type="PackedScene" uid="uid://buxjax71onpbr" path="res://Gameplay/Components/Doorway/doorway.tscn" id="2_5otvi"]
+[ext_resource type="Script" uid="uid://cnnb1lqfnklxu" path="res://Gameplay/Utils/room_data_updater.gd" id="2_eddm2"]
+[ext_resource type="Resource" uid="uid://b0gj1giuioqhm" path="res://Gameplay/Levels/RoomData/test_room_5.tres" id="3_bgoob"]
+[ext_resource type="PackedScene" uid="uid://q4glmjqwp3ym" path="res://Gameplay/Components/RoomArea/room_area.tscn" id="3_eddm2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bgoob"]
+size = Vector2(479, 258)
+
+[node name="TestRoom5" type="TileMapLayer"]
+tile_map_data = PackedByteArray("AAD8/wQAAAAAAAAAAAD9/wQAAAAAAAAAAAD+/wQAAAAAAAAAAAD//wQAAAAAAAAAAAAAAAQAAAAAAAAAAAABAAQAAAAAAAAAAAACAAQAAAAAAAAAAAADAAQAAAAAAAAAAAAEAAQAAAAAAAAAAAAFAAQAAAAAAAAAAAAFAAMAAAAAAAAAAAAFAAIAAAAAAAAAAAAFAAEAAAAAAAAAAAAFAAAAAAAAAAAAAAAFAP//AAAAAAAAAAAFAP7/AAAAAAAAAAAFAP3/AAAAAAAAAAAEAP3/AAAAAAAAAAADAP3/AAAAAAAAAAACAP3/AAAAAAAAAAABAP3/AAAAAAAAAAAAAP3/AAAAAAAAAAD///3/AAAAAAAAAAD+//3/AAAAAAAAAAD9//3/AAAAAAAAAAD8//3/AAAAAAAAAAD7//3/AAAAAAAAAAD7//7/AAAAAAAAAAD7////AAAAAAAAAAD7/wAAAAAAAAAAAAD7/wEAAAAAAAAAAAD7/wQAAAAAAAAAAAD6/wQAAAAAAAAAAAD5/wQAAAAAAAAAAAD6/wEAAAAAAAAAAAD5/wEAAAAAAAAAAAD4/wQAAAAAAAAAAAD3/wQAAAAAAAAAAAD3/wEAAAAAAAAAAAD4/wEAAAAAAAAAAAA=")
+tile_set = ExtResource("1_7mld1")
+script = ExtResource("2_eddm2")
+room_data = ExtResource("3_bgoob")
+
+[node name="Doorway" parent="." instance=ExtResource("2_5otvi")]
+position = Vector2(-270, 111)
+exit_index = 0
+direction = 1
+
+[node name="RoomArea" parent="." instance=ExtResource("3_eddm2")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomArea"]
+position = Vector2(-47.5, 32)
+shape = SubResource("RectangleShape2D_bgoob")
+debug_color = Color(0.617307, 0.528206, 0.255763, 0.42)

@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://jnk6lsf6lnwm"]
+
+[ext_resource type="Script" uid="uid://5gnts4d3b1xl" path="res://Gameplay/Objects/MeleeAttack/melee_attack.gd" id="1_4b8hf"]
+[ext_resource type="PackedScene" uid="uid://cy6v4r2xf5oqc" path="res://Gameplay/Components/Hitbox/hitbox.tscn" id="1_c26oa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4b8hf"]
+size = Vector2(70, 32)
+
+[node name="MeleeAttack" type="Node2D"]
+script = ExtResource("1_4b8hf")
+
+[node name="Hitbox" parent="." instance=ExtResource("1_c26oa")]
+unique_name_in_owner = true
+collision_layer = 128
+collision_mask = 100
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(35, 0)
+shape = SubResource("RectangleShape2D_4b8hf")
+debug_color = Color(0.920979, 0, 0.281949, 0.42)
+
+[node name="AttackTimer" type="Timer" parent="."]
+unique_name_in_owner = true

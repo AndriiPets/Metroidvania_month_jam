@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=4 uid="uid://b5lsyyi25pvgg"]
+
+[ext_resource type="TileSet" uid="uid://cat54jolovs6j" path="res://Assets/sprites/room.tres" id="1_6pcdv"]
+[ext_resource type="Script" uid="uid://cnnb1lqfnklxu" path="res://Gameplay/Utils/room_data_updater.gd" id="2_0p2vk"]
+[ext_resource type="PackedScene" uid="uid://buxjax71onpbr" path="res://Gameplay/Components/Doorway/doorway.tscn" id="2_po3lk"]
+[ext_resource type="PackedScene" uid="uid://q4glmjqwp3ym" path="res://Gameplay/Components/RoomArea/room_area.tscn" id="3_0p2vk"]
+[ext_resource type="Resource" uid="uid://duntu7h0nhtne" path="res://Gameplay/Levels/RoomData/test_room_6.tres" id="3_evwmx"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_evwmx"]
+size = Vector2(574, 350)
+
+[node name="TestRoom6" type="TileMapLayer"]
+tile_map_data = PackedByteArray("AAD6/wUAAAAAAAAAAAD7/wUAAAAAAAAAAAD8/wUAAAAAAAAAAAD9/wUAAAAAAAAAAAD+/wUAAAAAAAAAAAD//wUAAAAAAAAAAAAAAAUAAAAAAAAAAAABAAUAAAAAAAAAAAACAAUAAAAAAAAAAAADAAUAAAAAAAAAAAAEAAUAAAAAAAAAAAAFAAUAAAAAAAAAAAAGAAUAAAAAAAAAAAAHAAUAAAAAAAAAAAD5/wUAAAAAAAAAAAD4/wUAAAAAAAAAAAD3/wUAAAAAAAAAAAD3/wQAAAAAAAAAAAD3/wMAAAAAAAAAAAD3/wIAAAAAAAAAAAD3/wEAAAAAAAAAAAD3/wAAAAAAAAAAAAD3////AAAAAAAAAAD3//7/AAAAAAAAAAD3//3/AAAAAAAAAAAIAAUAAAAAAAAAAAAIAAQAAAAAAAAAAAAIAAMAAAAAAAAAAAAIAAIAAAAAAAAAAAAIAAEAAAAAAAAAAAAIAAAAAAAAAAAAAAAIAP//AAAAAAAAAAAIAP7/AAAAAAAAAAAIAP3/AAAAAAAAAAD3//z/AAAAAAAAAAD4//z/AAAAAAAAAAD5//z/AAAAAAAAAAD6//z/AAAAAAAAAAD7//z/AAAAAAAAAAD8//z/AAAAAAAAAAD9//z/AAAAAAAAAAABAPz/AAAAAAAAAAACAPz/AAAAAAAAAAADAPz/AAAAAAAAAAAEAPz/AAAAAAAAAAAFAPz/AAAAAAAAAAAGAPz/AAAAAAAAAAAHAPz/AAAAAAAAAAAIAPz/AAAAAAAAAAD+//z/AAAAAAAAAAD+//v/AAAAAAAAAAABAPv/AAAAAAAAAAA=")
+tile_set = ExtResource("1_6pcdv")
+script = ExtResource("2_0p2vk")
+room_data = ExtResource("3_evwmx")
+
+[node name="Doorway" parent="." instance=ExtResource("2_po3lk")]
+position = Vector2(-15, -144)
+exit_index = 0
+direction = 2
+
+[node name="RoomArea" parent="." instance=ExtResource("3_0p2vk")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomArea"]
+position = Vector2(-1, 15)
+shape = SubResource("RectangleShape2D_evwmx")
+debug_color = Color(0.617589, 0.53037, 0.212507, 0.42)

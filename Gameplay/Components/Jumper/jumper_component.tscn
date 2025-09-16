@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://buonu5ne5fn3o"]
+
+[ext_resource type="Script" uid="uid://cwk52k645k1mq" path="res://Gameplay/Components/Jumper/jumper_component.gd" id="1_fr5mi"]
+
+[node name="JumperComponent" type="Area2D"]
+script = ExtResource("1_fr5mi")

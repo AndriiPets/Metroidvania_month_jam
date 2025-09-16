@@ -1,0 +1,57 @@
+[gd_scene load_steps=8 format=3 uid="uid://boxuppciqnc7b"]
+
+[ext_resource type="Texture2D" uid="uid://b00o67ym823i5" path="res://Assets/sprites/player.png" id="1_4a6nv"]
+[ext_resource type="Script" uid="uid://cebswo8vsyhc4" path="res://Gameplay/Objects/Dummy/dummy.gd" id="1_x3lh4"]
+[ext_resource type="PackedScene" uid="uid://cubmwwnocg4uk" path="res://Gameplay/Components/Health/health_component.tscn" id="2_x3lh4"]
+[ext_resource type="PackedScene" uid="uid://sjg21h3dmyb0" path="res://Gameplay/Components/Hurtbox/hurtbox.tscn" id="3_6wbn5"]
+[ext_resource type="PackedScene" uid="uid://dfbroq1jwrgan" path="res://Gameplay/Components/HitFlash/hit_flash.tscn" id="5_6wbn5"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t3pk4"]
+radius = 4.0
+height = 14.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tvipn"]
+height = 34.0
+
+[node name="Dummy" type="CharacterBody2D"]
+collision_layer = 512
+collision_mask = 263
+script = ExtResource("1_x3lh4")
+
+[node name="Head" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(0, -32)
+texture = ExtResource("1_4a6nv")
+hframes = 8
+vframes = 8
+frame = 55
+
+[node name="Body" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("1_4a6nv")
+hframes = 8
+vframes = 8
+frame = 63
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(2, 9)
+shape = SubResource("CapsuleShape2D_t3pk4")
+
+[node name="HealthComponent" parent="." instance=ExtResource("2_x3lh4")]
+unique_name_in_owner = true
+max_health = 1000.0
+
+[node name="Hurtbox" parent="." node_paths=PackedStringArray("health_component") instance=ExtResource("3_6wbn5")]
+unique_name_in_owner = true
+collision_layer = 64
+collision_mask = 128
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(2, -13)
+shape = SubResource("CapsuleShape2D_tvipn")
+debug_color = Color(1.10701e-06, 0.64592, 0.249278, 0.42)
+
+[node name="HitFlash" parent="." node_paths=PackedStringArray("nodes_to_flash") instance=ExtResource("5_6wbn5")]
+unique_name_in_owner = true
+nodes_to_flash = [NodePath("../Head"), NodePath("../Body")]

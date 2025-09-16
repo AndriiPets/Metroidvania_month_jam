@@ -58,7 +58,7 @@ func build_vfx_library(path: String) -> void:
             
         file_name = dir.get_next()
 
-func spawn_vfx(effect_id: StringName, global_position: Vector2, optional_params: Dictionary = {}) -> void:
+func spawn_vfx(effect_id: StringName, global_position: Vector2, optional_params: Dictionary = {}, parent: Node = null) -> void:
     if not vfx_library.has(effect_id):
         push_warning("VFXManager: Tried to spawn non-existent effect with ID: '%s'" % effect_id)
         return
@@ -71,7 +71,10 @@ func spawn_vfx(effect_id: StringName, global_position: Vector2, optional_params:
     var vfx_instance := vfx_scene.instantiate() as GPUParticles2D
     
     # Add the instance to the current scene tree.
-    get_tree().current_scene.add_child(vfx_instance)
+    if is_instance_valid(parent):
+        parent.add_child(vfx_instance)
+    else:
+        get_tree().current_scene.add_child(vfx_instance)
     
     vfx_instance.global_position = global_position
     

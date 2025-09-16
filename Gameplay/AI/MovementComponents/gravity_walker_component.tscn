@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://bseuwtlctrqsc"]
+
+[ext_resource type="Script" uid="uid://8rvyjtq6jelq" path="res://Gameplay/AI/MovementComponents/gravity_walker_component.gd" id="1_dqpef"]
+
+[node name="GravityWalkerComponent" type="Node2D"]
+script = ExtResource("1_dqpef")
+
+[node name="FloorProbe" type="RayCast2D" parent="."]
+unique_name_in_owner = true
+target_position = Vector2(0, 20)
+collision_mask = 3
+
+[node name="LedgeProbe" type="RayCast2D" parent="."]
+unique_name_in_owner = true
+target_position = Vector2(16, 16)
+collision_mask = 3
+
+[node name="WallProbe" type="RayCast2D" parent="."]
+unique_name_in_owner = true
+target_position = Vector2(20, 0)
+collision_mask = 3
+
+[node name="TurnCooldown" type="Timer" parent="."]
+wait_time = 0.4

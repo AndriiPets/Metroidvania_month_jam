@@ -48,7 +48,6 @@ color_ramp = SubResource("GradientTexture1D_00p0k")
 [node name="Run" type="GPUParticles2D"]
 material = SubResource("CanvasItemMaterial_ldot7")
 emitting = false
-amount = 16
 texture = SubResource("GradientTexture2D_5riwb")
 lifetime = 0.8
 one_shot = true

@@ -1,15 +1,32 @@
-[gd_scene load_steps=3 format=4 uid="uid://shjkxyyybnsm"]
+[gd_scene load_steps=7 format=4 uid="uid://shjkxyyybnsm"]
 
 [ext_resource type="TileSet" uid="uid://cat54jolovs6j" path="res://Assets/sprites/room.tres" id="1_nstd1"]
-[ext_resource type="PackedScene" uid="uid://b10025gs2lw1m" path="res://Gameplay/Components/Exit/exit.tscn" id="2_xd4el"]
+[ext_resource type="Script" uid="uid://cnnb1lqfnklxu" path="res://Gameplay/Utils/room_data_updater.gd" id="2_4g6b0"]
+[ext_resource type="PackedScene" uid="uid://buxjax71onpbr" path="res://Gameplay/Components/Doorway/doorway.tscn" id="2_nstd1"]
+[ext_resource type="Resource" uid="uid://b0n88jnkcstwg" path="res://Gameplay/Levels/RoomData/test_room_2.tres" id="3_0w3p2"]
+[ext_resource type="PackedScene" uid="uid://q4glmjqwp3ym" path="res://Gameplay/Components/RoomArea/room_area.tscn" id="5_0w3p2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q2pgr"]
+size = Vector2(478, 448)
 
 [node name="TestRoom2" type="TileMapLayer"]
 tile_map_data = PackedByteArray("AAD4////AAAAAAAAAAD4//z/AAAAAAAAAAD5//z/AAAAAAAAAAD6//z/AAAAAAAAAAD7//z/AAAAAAAAAAD8//z/AAAAAAAAAAD9//z/AAAAAAAAAAD+//z/AAAAAAAAAAD///z/AAAAAAAAAAAAAPz/AAAAAAAAAAABAPz/AAAAAAAAAAACAPz/AAAAAAAAAAADAPz/AAAAAAAAAAAEAPz/AAAAAAAAAAAFAPz/AAAAAAAAAAAGAPz/AAAAAAAAAAD4/wAAAAAAAAAAAAD4/wEAAAAAAAAAAAD4/wIAAAAAAAAAAAD4/wMAAAAAAAAAAAD4/wQAAAAAAAAAAAD4/wUAAAAAAAAAAAD4/wYAAAAAAAAAAAD4/wcAAAAAAAAAAAD4/wgAAAAAAAAAAAAGAAkAAAAAAAAAAAAFAAkAAAAAAAAAAAAEAAkAAAAAAAAAAAADAAkAAAAAAAAAAAACAAkAAAAAAAAAAAABAAkAAAAAAAAAAAAAAAkAAAAAAAAAAAD//wkAAAAAAAAAAAD+/wkAAAAAAAAAAAD9/wkAAAAAAAAAAAD8/wkAAAAAAAAAAAD7/wkAAAAAAAAAAAD5/wkAAAAAAAAAAAD4/wkAAAAAAAAAAAD6/wkAAAAAAAAAAAAGAAYAAAAAAAAAAAAGAAUAAAAAAAAAAAAGAAQAAAAAAAAAAAAGAAMAAAAAAAAAAAAGAAIAAAAAAAAAAAAGAAEAAAAAAAAAAAAGAAAAAAAAAAAAAAAGAP//AAAAAAAAAAAGAP7/AAAAAAAAAAAGAP3/AAAAAAAAAAD5/wMAAAAAAAAAAAD6/wMAAAAAAAAAAAD7/wMAAAAAAAAAAAAFAAMAAAAAAAAAAAAEAAMAAAAAAAAAAAADAAMAAAAAAAAAAAD+/wYAAAAAAAAAAAD//wYAAAAAAAAAAAAAAAYAAAAAAAAAAAABAAYAAAAAAAAAAAA=")
 tile_set = ExtResource("1_nstd1")
+script = ExtResource("2_4g6b0")
+room_data = ExtResource("3_0w3p2")
 
-[node name="Exit" parent="." instance=ExtResource("2_xd4el")]
+[node name="Doorway" parent="." instance=ExtResource("2_nstd1")]
 position = Vector2(-239, -47)
+exit_index = 0
 direction = 1
 
-[node name="Exit2" parent="." instance=ExtResource("2_xd4el")]
-position = Vector2(208, 272)
+[node name="Doorway2" parent="." instance=ExtResource("2_nstd1")]
+position = Vector2(209, 271)
+exit_index = 1
+
+[node name="RoomArea" parent="." instance=ExtResource("5_0w3p2")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomArea"]
+position = Vector2(-15, 94)
+shape = SubResource("RectangleShape2D_q2pgr")
+debug_color = Color(0.643137, 0.513726, 0.27451, 0.227451)

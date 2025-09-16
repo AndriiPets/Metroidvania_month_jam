@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://usetiwluh2ko"]
+
+[ext_resource type="Texture2D" uid="uid://2ul5388s3pns" path="res://icon.svg" id="1_7ld7g"]
+[ext_resource type="Script" uid="uid://cwdgqwoodjiuk" path="res://Gameplay/Objects/Enemies/ArmoredSlug/armored_slug.gd" id="1_r2ko5"]
+[ext_resource type="PackedScene" uid="uid://cubmwwnocg4uk" path="res://Gameplay/Components/Health/health_component.tscn" id="2_xu82y"]
+[ext_resource type="PackedScene" uid="uid://dfbroq1jwrgan" path="res://Gameplay/Components/HitFlash/hit_flash.tscn" id="3_fcm6b"]
+[ext_resource type="PackedScene" uid="uid://sjg21h3dmyb0" path="res://Gameplay/Components/Hurtbox/hurtbox.tscn" id="4_r2ko5"]
+[ext_resource type="PackedScene" uid="uid://bseuwtlctrqsc" path="res://Gameplay/AI/MovementComponents/gravity_walker_component.tscn" id="6_4f30t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7ld7g"]
+size = Vector2(32, 13)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xu82y"]
+size = Vector2(38, 36)
+
+[node name="ArmoredSlug" type="CharacterBody2D"]
+collision_layer = 512
+collision_mask = 263
+script = ExtResource("1_r2ko5")
+
+[node name="Head" type="Sprite2D" parent="."]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_7ld7g")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 9.5)
+shape = SubResource("RectangleShape2D_7ld7g")
+
+[node name="HealthComponent" parent="." instance=ExtResource("2_xu82y")]
+
+[node name="HitFlash" parent="." node_paths=PackedStringArray("nodes_to_flash") instance=ExtResource("3_fcm6b")]
+unique_name_in_owner = true
+nodes_to_flash = [NodePath("../Head")]
+
+[node name="Hurtbox" parent="." node_paths=PackedStringArray("health_component") instance=ExtResource("4_r2ko5")]
+unique_name_in_owner = true
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_xu82y")
+debug_color = Color(0.360952, 0.615003, 0.152463, 0.42)
+
+[node name="GravityWalkerComponent" parent="." node_paths=PackedStringArray("target_body") instance=ExtResource("6_4f30t")]
+unique_name_in_owner = true
+position = Vector2(20, 0)
+target_body = NodePath("..")

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=4 format=3 uid="uid://dgf6uldes0h8c"]
+
+[ext_resource type="Script" uid="uid://bpxrskxbyl4no" path="res://Gameplay/Components/ResourceScripts/weapon_config.gd" id="1_ckar5"]
+[ext_resource type="Resource" uid="uid://dw0x1plmm0rt5" path="res://Gameplay/Components/WeaponSystem/AttackResources/player_melee_attack.tres" id="1_xjrjj"]
+[ext_resource type="Texture2D" uid="uid://dij5o4up0rqdc" path="res://Assets/sprites/knife.png" id="3_xjrjj"]
+
+[resource]
+script = ExtResource("1_ckar5")
+attack_data = ExtResource("1_xjrjj")
+weapon_texture = ExtResource("3_xjrjj")
+metadata/_custom_type_script = "uid://bpxrskxbyl4no"

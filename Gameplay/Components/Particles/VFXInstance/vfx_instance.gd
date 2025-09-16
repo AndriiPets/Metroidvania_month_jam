@@ -13,6 +13,7 @@ func _ready() -> void:
 	# We need to explicitly check if the parent is valid before accessing its properties/signals.
 	if is_instance_valid(vfx_node):
 		if vfx_node is GPUParticles2D:
+			vfx_node.z_index = 25
 			# For particles, wait for the 'finished' signal.
 			await vfx_node.finished
 		elif vfx_node is AnimatedSprite2D:

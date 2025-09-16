@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgievhrekrsli"]
+
+[ext_resource type="Script" uid="uid://bm6fq3m1ujiaj" path="res://Gameplay/UI/Minimap/minimap.gd" id="1_jbekk"]
+
+[node name="Minimap" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_jbekk")

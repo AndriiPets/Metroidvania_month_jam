@@ -1,0 +1,41 @@
+[gd_scene load_steps=7 format=3 uid="uid://cgmde3rru5d70"]
+
+[ext_resource type="Texture2D" uid="uid://2ul5388s3pns" path="res://icon.svg" id="1_cyey3"]
+[ext_resource type="Script" uid="uid://buv2lu2l3gfx2" path="res://Gameplay/Objects/Platforms/JumpPad/jump_pad.gd" id="1_npsly"]
+[ext_resource type="PackedScene" uid="uid://buonu5ne5fn3o" path="res://Gameplay/Components/Jumper/jumper_component.tscn" id="2_4ttaj"]
+[ext_resource type="PackedScene" uid="uid://6nx3qwdn8iu2" path="res://Gameplay/Components/Squasher/squasher.tscn" id="3_npsly"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rhqpu"]
+size = Vector2(64, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_smm3d"]
+size = Vector2(63, 21)
+
+[node name="JumpPad" type="StaticBody2D"]
+collision_layer = 2
+collision_mask = 24
+script = ExtResource("1_npsly")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_rhqpu")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-9.53674e-07, 1.19209e-07)
+scale = Vector2(0.5, 0.25)
+texture = ExtResource("1_cyey3")
+
+[node name="JumperComponent" parent="." instance=ExtResource("2_4ttaj")]
+collision_layer = 2
+collision_mask = 768
+launch_velocity = -500.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="JumperComponent"]
+position = Vector2(-0.5, -11.5)
+shape = SubResource("RectangleShape2D_smm3d")
+debug_color = Color(0.842841, 0.131264, 0.86252, 0.42)
+
+[node name="Squasher" parent="." node_paths=PackedStringArray("nodes") instance=ExtResource("3_npsly")]
+nodes = [NodePath("../Sprite2D")]
+speed = 25.0
+
+[node name="CooldownTimer" type="Timer" parent="."]

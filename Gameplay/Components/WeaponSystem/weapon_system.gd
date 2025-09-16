@@ -7,7 +7,7 @@ signal recoil_shot(direction: Vector2)
 @export var base_attack_data: AttackData
 
 @export var strategies: Array[WeaponStrategy] = []
-@export var base_fire_rate: float = 1.0
+@export var base_fire_rate: float = 0.5
 @export var min_fire_rate: float = 0.1
 
 @onready var fire_rate_timer: Timer = $FireRateTimer
@@ -77,8 +77,33 @@ func attack(muzzle_position: Vector2, target_position: Vector2) -> void:
 	emit_signal("recoil_shot", shoot_direction)
 
 func _spawn_projectile(position: Vector2, direction: Vector2, attack_data: AttackData) -> void:
-	var projectile_data = attack_data.duplicate(true)
-	var new_projectile = projectile_data.projectile_scene.instantiate() as Bullet
+	if not attack_data.projectile_scene:
+		printerr("AttackData is missing a projectile_scene!")
+		return
 
-	get_tree().root.add_child(new_projectile)
-	new_projectile.launch(position, direction, projectile_data)
+	# Instantiate the scene (this is the same for both melee and ranged)
+	var instance = attack_data.projectile_scene.instantiate()
+
+	# --- NEW LOGIC: Decide WHERE to parent it and HOW to launch it ---
+	if attack_data.attach_to == AttackData.AttachTarget.OWNER:
+		# This is a MELEE attack. Parent it to the owner of this weapon component.
+		var owner_node = owner
+		owner_node.add_child(instance)
+
+		# It needs to be positioned relative to the owner. We can use the weapon pivot.
+		var weapon_pivot = owner_node.get_node_or_null("WeaponPivot")
+		if weapon_pivot:
+			instance.global_position = weapon_pivot.global_position
+			instance.global_rotation = weapon_pivot.global_rotation
+		else:
+			instance.global_position = owner_node.global_position
+		# Call the melee-specific launch function.
+		if instance.has_method("launch"):
+			instance.launch(attack_data, attack_data.duration)
+
+	else: # PROJECTILE
+		get_tree().root.add_child(instance)
+		# We can assume it's a Bullet and call its launch method.
+		var new_projectile = instance as Bullet
+		if new_projectile:
+			new_projectile.launch(position, direction, attack_data)

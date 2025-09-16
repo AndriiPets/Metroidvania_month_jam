@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5cukmhhwrpes"]
+
+[ext_resource type="Script" uid="uid://be4kcekxrpgfb" path="res://Gameplay/Components/Mover/mover.gd" id="1_ycjur"]
+
+[node name="Mover" type="Node"]
+script = ExtResource("1_ycjur")

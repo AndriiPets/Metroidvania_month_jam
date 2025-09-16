@@ -1,0 +1,45 @@
+[gd_scene load_steps=9 format=4 uid="uid://b5omegn36cb1p"]
+
+[ext_resource type="TileSet" uid="uid://cat54jolovs6j" path="res://Assets/sprites/room.tres" id="1_yltrd"]
+[ext_resource type="Script" uid="uid://cnnb1lqfnklxu" path="res://Gameplay/Utils/room_data_updater.gd" id="2_a63fh"]
+[ext_resource type="PackedScene" uid="uid://q4glmjqwp3ym" path="res://Gameplay/Components/RoomArea/room_area.tscn" id="2_m3m03"]
+[ext_resource type="PackedScene" uid="uid://buxjax71onpbr" path="res://Gameplay/Components/Doorway/doorway.tscn" id="3_a63fh"]
+[ext_resource type="Resource" uid="uid://0m7xtoc7wdqf" path="res://Gameplay/Levels/RoomData/test_room_4.tres" id="3_xeen4"]
+[ext_resource type="PackedScene" uid="uid://ccau7quygy3pj" path="res://Gameplay/Objects/Platforms/Elevator/elevator.tscn" id="4_xeen4"]
+[ext_resource type="PackedScene" uid="uid://cgmde3rru5d70" path="res://Gameplay/Objects/Platforms/JumpPad/jump_pad.tscn" id="7_xeen4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_en6j6"]
+size = Vector2(990, 417)
+
+[node name="TestRoom4" type="TileMapLayer"]
+tile_map_data = PackedByteArray("AAAOAAUAAAAAAAAAAAAOAPz/AAAAAAAAAAAOAP3/AAAAAAAAAAAOAP7/AAAAAAAAAAAOAP//AAAAAAAAAAAOAAAAAAAAAAAAAAAOAAMAAAAAAAAAAAAOAAQAAAAAAAAAAAD1/wUAAAAAAAAAAAD2/wUAAAAAAAAAAAD3/wUAAAAAAAAAAAD4/wUAAAAAAAAAAAD5/wUAAAAAAAAAAAD6/wUAAAAAAAAAAAD7/wUAAAAAAAAAAAD8/wUAAAAAAAAAAAD9/wUAAAAAAAAAAAD+/wUAAAAAAAAAAAD//wUAAAAAAAAAAAAAAAUAAAAAAAAAAAADAAUAAAAAAAAAAAAEAAUAAAAAAAAAAAAFAAUAAAAAAAAAAAAGAAUAAAAAAAAAAAAHAAUAAAAAAAAAAAAIAAUAAAAAAAAAAAAJAAUAAAAAAAAAAAAKAAUAAAAAAAAAAAALAAUAAAAAAAAAAAANAAUAAAAAAAAAAAAMAAUAAAAAAAAAAAD0/wUAAAAAAAAAAADz/wUAAAAAAAAAAADy/wUAAAAAAAAAAADx/wUAAAAAAAAAAADw/wUAAAAAAAAAAADw/wQAAAAAAAAAAADw/wMAAAAAAAAAAADw/wAAAAAAAAAAAADw////AAAAAAAAAADw//3/AAAAAAAAAADw//z/AAAAAAAAAADw//v/AAAAAAAAAADw//r/AAAAAAAAAADw//7/AAAAAAAAAADw//n/AAAAAAAAAADx//n/AAAAAAAAAADy//n/AAAAAAAAAADz//n/AAAAAAAAAAD0//n/AAAAAAAAAAD1//n/AAAAAAAAAAD2//n/AAAAAAAAAAD3//n/AAAAAAAAAAD4//n/AAAAAAAAAAD5//n/AAAAAAAAAAD6//n/AAAAAAAAAAD7//n/AAAAAAAAAAD8//n/AAAAAAAAAAD9//n/AAAAAAAAAAD+//n/AAAAAAAAAAD///n/AAAAAAAAAAAAAPn/AAAAAAAAAAABAPn/AAAAAAAAAAACAPn/AAAAAAAAAAADAPn/AAAAAAAAAAAEAPn/AAAAAAAAAAAFAPn/AAAAAAAAAAAGAPn/AAAAAAAAAAAHAPn/AAAAAAAAAAAIAPn/AAAAAAAAAAAJAPn/AAAAAAAAAAAKAPn/AAAAAAAAAAALAPn/AAAAAAAAAAAMAPn/AAAAAAAAAAANAPn/AAAAAAAAAAAOAPn/AAAAAAAAAAAOAPr/AAAAAAAAAAAOAPv/AAAAAAAAAAANAAMAAAAAAAAAAADx/wMAAAAAAAAAAADx/wQAAAAAAAAAAAANAAQAAAAAAAAAAAACAAUAAAAAAAAAAAACAAQAAAAAAAAAAAACAAMAAAAAAAAAAAACAAIAAAAAAAAAAAABAAIAAAAAAAAAAAAAAAIAAAAAAAAAAAA=")
+tile_set = ExtResource("1_yltrd")
+script = ExtResource("2_a63fh")
+room_data = ExtResource("3_xeen4")
+
+[node name="RoomArea" parent="." instance=ExtResource("2_m3m03")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomArea"]
+position = Vector2(-16, -16.5)
+shape = SubResource("RectangleShape2D_en6j6")
+debug_color = Color(0.572246, 0.545714, 0.293203, 0.42)
+
+[node name="Doorway" parent="." instance=ExtResource("3_a63fh")]
+position = Vector2(-494, 82)
+exit_index = 0
+direction = 1
+
+[node name="Doorway2" parent="." instance=ExtResource("3_a63fh")]
+position = Vector2(464, 79)
+exit_index = 1
+
+[node name="Doorway3" parent="." instance=ExtResource("3_a63fh")]
+position = Vector2(17, 143)
+exit_index = 2
+direction = 3
+
+[node name="Platform" parent="." instance=ExtResource("4_xeen4")]
+position = Vector2(-160, 78)
+
+[node name="JumpPad" parent="." instance=ExtResource("7_xeen4")]
+position = Vector2(193, 69)

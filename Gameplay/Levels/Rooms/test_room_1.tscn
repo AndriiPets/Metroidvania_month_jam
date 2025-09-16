@@ -1,15 +1,43 @@
-[gd_scene load_steps=3 format=4 uid="uid://dwfnuaw0dgh41"]
+[gd_scene load_steps=9 format=4 uid="uid://dwfnuaw0dgh41"]
 
 [ext_resource type="TileSet" uid="uid://cat54jolovs6j" path="res://Assets/sprites/room.tres" id="1_2khhe"]
-[ext_resource type="PackedScene" uid="uid://b10025gs2lw1m" path="res://Gameplay/Components/Exit/exit.tscn" id="2_8sach"]
+[ext_resource type="Script" uid="uid://cnnb1lqfnklxu" path="res://Gameplay/Utils/room_data_updater.gd" id="2_inulp"]
+[ext_resource type="PackedScene" uid="uid://buxjax71onpbr" path="res://Gameplay/Components/Doorway/doorway.tscn" id="3_886y6"]
+[ext_resource type="PackedScene" uid="uid://boxuppciqnc7b" path="res://Gameplay/Objects/Dummy/dummy.tscn" id="3_c5814"]
+[ext_resource type="Resource" uid="uid://i7c0m38c8ar2" path="res://Gameplay/Levels/RoomData/test_room_1.tres" id="3_kx1sd"]
+[ext_resource type="PackedScene" uid="uid://q4glmjqwp3ym" path="res://Gameplay/Components/RoomArea/room_area.tscn" id="6_kx1sd"]
+[ext_resource type="PackedScene" uid="uid://usetiwluh2ko" path="res://Gameplay/Objects/Enemies/ArmoredSlug/armored_slug.tscn" id="7_dwpkm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dwpkm"]
+size = Vector2(444, 350)
 
 [node name="Node2D" type="TileMapLayer"]
 tile_map_data = PackedByteArray("AAD5/wQAAAAAAAAAAAD6/wQAAAAAAAAAAAD7/wQAAAAAAAAAAAD8/wQAAAAAAAAAAAD9/wQAAAAAAAAAAAD+/wQAAAAAAAAAAAD//wQAAAAAAAAAAAAAAAQAAAAAAAAAAAABAAQAAAAAAAAAAAACAAQAAAAAAAAAAAADAAQAAAAAAAAAAAAEAAQAAAAAAAAAAAAFAAQAAAAAAAAAAAAGAAQAAAAAAAAAAAD5/wEAAAAAAAAAAAAGAAEAAAAAAAAAAAD5/wAAAAAAAAAAAAD5////AAAAAAAAAAD5//7/AAAAAAAAAAD5//3/AAAAAAAAAAD6/wEAAAAAAAAAAAD7/wEAAAAAAAAAAAD8/wEAAAAAAAAAAAAFAAEAAAAAAAAAAAAEAAEAAAAAAAAAAAADAAEAAAAAAAAAAAAGAAAAAAAAAAAAAAAGAP//AAAAAAAAAAAGAP7/AAAAAAAAAAAGAP3/AAAAAAAAAAD9//7/AAAAAAAAAAD+//7/AAAAAAAAAAD///7/AAAAAAAAAAAAAP7/AAAAAAAAAAABAP7/AAAAAAAAAAACAP7/AAAAAAAAAAD5//z/AAAAAAAAAAD5//v/AAAAAAAAAAD5//r/AAAAAAAAAAD6//r/AAAAAAAAAAD7//r/AAAAAAAAAAD8//r/AAAAAAAAAAD9//r/AAAAAAAAAAD+//r/AAAAAAAAAAD///r/AAAAAAAAAAAAAPr/AAAAAAAAAAABAPr/AAAAAAAAAAACAPr/AAAAAAAAAAADAPr/AAAAAAAAAAAEAPr/AAAAAAAAAAAFAPr/AAAAAAAAAAAGAPr/AAAAAAAAAAAGAPv/AAAAAAAAAAAGAPz/AAAAAAAAAAA=")
 tile_set = ExtResource("1_2khhe")
+script = ExtResource("2_inulp")
+room_data = ExtResource("3_kx1sd")
 
-[node name="Exit" parent="." instance=ExtResource("2_8sach")]
-position = Vector2(208, 112)
+[node name="Dummy" parent="." instance=ExtResource("3_c5814")]
+position = Vector2(-2, 112)
 
-[node name="Exit2" parent="." instance=ExtResource("2_8sach")]
-position = Vector2(-206, 112)
+[node name="Doorway" parent="." instance=ExtResource("3_886y6")]
+position = Vector2(-206, 111)
+exit_index = 0
 direction = 1
+
+[node name="Doorway2" parent="." instance=ExtResource("3_886y6")]
+position = Vector2(209, 113)
+exit_index = 1
+
+[node name="RoomArea" parent="." instance=ExtResource("6_kx1sd")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoomArea"]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_dwpkm")
+debug_color = Color(0.650664, 0.513819, 0.259875, 0.27451)
+
+[node name="ArmoredSlug" parent="." instance=ExtResource("7_dwpkm")]
+position = Vector2(-44, -81)
+
+[node name="ArmoredSlug2" parent="." instance=ExtResource("7_dwpkm")]
+position = Vector2(-156, 14)

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RoomData" load_steps=4 format=3 uid="uid://b0gj1giuioqhm"]
+
+[ext_resource type="Script" uid="uid://doen3w347hmpa" path="res://Gameplay/Components/ResourceScripts/exit_data.gd" id="1_ce1sr"]
+[ext_resource type="Script" uid="uid://63av2rkmmoi1" path="res://Gameplay/Components/ResourceScripts/room_data.gd" id="2_ukhpg"]
+
+[sub_resource type="Resource" id="Resource_ce1sr"]
+script = ExtResource("1_ce1sr")
+position = Vector2(-270, 111)
+direction = 1
+
+[resource]
+script = ExtResource("2_ukhpg")
+scene_path = "res://Gameplay/Levels/Rooms/test_room_5.tscn"
+room_type = 0
+size_units = Vector2(1, 1)
+exits = Array[ExtResource("1_ce1sr")]([SubResource("Resource_ce1sr")])

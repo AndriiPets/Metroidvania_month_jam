@@ -10,22 +10,48 @@ var speed: float = 200.0
 @export var run_tilt_angle: float = 8.0
 @export var tilt_speed: float = 0.2
 
-@export var jump_height := 80.0
-@export var jump_time_to_peak := 0.3
-@export var jump_time_to_descent := 0.4
+# --- Input Buffering ---
+@export_group("Input Buffering")
+## How long (in seconds) the game remembers a jump input before the player lands.
+@export var jump_buffer_duration: float = 0.15
+
+@onready var jump_buffer_timer: Timer = %JumpTimerBuffer
+
+@export var coyote_time_duration: float = 0.12
+
+@onready var coyote_timer: Timer = %CoyoteTimer
+
+# --- Jump Variables ---
+@export_group("Jumping")
+@export var max_jump_height: float = 100.0
+@export var min_jump_height: float = 40.0
+@export var jump_time_to_peak: float = 0.4
+@export var jump_time_to_descent: float = 0.5
+
+# --- Calculated Jump Physics ---
+@onready var jump_velocity: float = (-2.0 * max_jump_height) / jump_time_to_peak
+@onready var min_jump_velocity: float = (-2.0 * min_jump_height) / jump_time_to_peak
+@onready var up_gravity: float = (2.0 * max_jump_height) / pow(jump_time_to_peak, 2.0)
+@onready var fall_gravity: float = (2.0 * max_jump_height) / pow(jump_time_to_descent, 2.0)
+@onready var horizontal_speed: float = 120.0 / (jump_time_to_peak + jump_time_to_descent)
+
+@export var jump_height := 100.0
+
 @export var jump_distance := 120.0
 @onready var jump_speed := calculate_jump_speed(jump_height, jump_time_to_peak)
-@onready var up_gravity := calculate_jump_gravity(jump_height, jump_time_to_peak)
-@onready var fall_gravity := calculate_fall_gravity(jump_height, jump_time_to_descent)
-@onready var horizontal_speed := calculate_jump_horizontal_speed(jump_distance, jump_time_to_peak, jump_time_to_descent)
+
+@export_group("Weapon Switching")
+@export var ranged_weapon_config: WeaponConfig
+@export var melee_weapon_config: WeaponConfig
+
+var current_weapon_config: WeaponConfig
+var is_melee_equipped: bool = false
 
 var bullet = preload("res://Gameplay/Objects/Bullet/bullet.tscn")
 
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var friction = 0.12
 var acceleration = 0.25
-
-var current_exit_point: ExitPoint = null
 
 var was_on_floor: bool = true
 var is_running: bool = false
@@ -80,8 +106,14 @@ func _ready() -> void:
 	run_vfx_timer.timeout.connect(_on_run_vfx_timer_timeout)
 	add_child(run_vfx_timer)
 
+	jump_buffer_timer.wait_time = jump_buffer_duration
+	coyote_timer.wait_time = coyote_time_duration
+
 	initial_left_shoulder_pos = left_shoulder.position
 	initial_right_shoulder_pos = right_shoulder.position
+
+	current_weapon_config = ranged_weapon_config
+	_update_weapon_display()
 
 	weapon_component.recoil_shot.connect(_on_recoil_shot)
 
@@ -103,9 +135,32 @@ func _physics_process(delta: float) -> void:
 	var dir := InputComponent.get_input_vector().x
 	handle_horizontal_movement(dir)
 
-	if Input.is_action_just_pressed("JUMP") and is_on_floor():
+	# --- NEW: JUMP INPUT with Coyote Time and Buffering ---
+	var can_jump = is_on_floor() or not coyote_timer.is_stopped()
+
+	if Input.is_action_just_pressed("JUMP"):
+		if can_jump:
+			# If we are on the floor or coyote time is active, jump.
+			squash_body.start()
+			_execute_jump()
+			# Consume both coyote time and any active buffer to prevent conflicts.
+			coyote_timer.stop()
+			jump_buffer_timer.stop()
+		else:
+			# If we can't jump, buffer the input.
+			jump_buffer_timer.start()
+
+	# --- Check for and Execute a Buffered Jump ---
+	# This check happens every physics frame.
+	if is_on_floor() and not jump_buffer_timer.is_stopped():
+		# If we've just landed and the buffer is active, execute a jump.
 		squash_body.start()
 		_execute_jump()
+		# Consume the buffer by stopping the timer.
+		jump_buffer_timer.stop()
+	
+	if Input.is_action_just_pressed("SWITCH_WEAPON"):
+		_switch_weapon()
 
 	if Input.is_action_pressed("SHOOT"):
 		just_shot = true
@@ -115,7 +170,23 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_released("SHOOT"):
 		just_shot = false
 
+	# --- NEW: Variable Jump Height Logic ---
+	# If the jump button is released while the player is moving up...
+	if Input.is_action_just_released("JUMP") and velocity.y < 0:
+		# ...cut their upward velocity to the minimum jump speed.
+		# Using max() ensures we don't accidentally increase their speed if they are already falling.
+		velocity.y = max(velocity.y, min_jump_velocity)
+
 	move_and_slide()
+
+	# ---Coyote Timer Management ---
+	if is_on_floor():
+		# If we are on the ground, the coyote timer should always be stopped.
+		coyote_timer.stop()
+	elif was_on_floor and not is_on_floor():
+		# If we were on the floor last frame but not this one, we just left a ledge.
+		# Start the coyote timer to give the player a grace period.
+		coyote_timer.start()
 
 	_update_body_animation()
 	was_on_floor = is_on_floor()
@@ -152,21 +223,6 @@ func handle_aiming_and_head() -> void:
 func on_health_change(old: int, new: int) -> void:
 	print("Health changed : %s -> %s" % [old, new])
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("DOWN"):
-		if DungeonManager.current_state == DungeonManager.State.IDLE and is_instance_valid(current_exit_point):
-			DungeonManager.start_room_draft(current_exit_point.global_position, current_exit_point.direction)
-			get_viewport().set_input_as_handled()
-		elif DungeonManager.current_state == DungeonManager.State.DRAFTING:
-			DungeonManager.cancel_draft()
-			get_viewport().set_input_as_handled()
-
-func on_exit_entered(exit_point: ExitPoint):
-	current_exit_point = exit_point
-
-func on_exit_exited():
-	current_exit_point = null
-
 func handle_horizontal_movement(dir: float) -> void:
 	if dir != 0:
 		velocity.x = lerp(velocity.x, dir * speed, acceleration)
@@ -174,14 +230,17 @@ func handle_horizontal_movement(dir: float) -> void:
 		velocity.x = lerp(velocity.x, 0.0, friction)
 
 func _execute_jump() -> void:
-	set_physics_process(false)
+	# The takeoff animation should play, but it must not block the physics.
 	body.play("takeoff")
 	VFXManager.spawn_vfx("takeoff", global_position + Vector2(0, 15))
-	await body.animation_finished
-	velocity.y = jump_speed
+	
+	# Apply the maximum possible jump velocity instantly.
+	velocity.y = jump_velocity
+	
+	# Horizontal speed can still be applied if desired.
 	var dir = InputComponent.get_input_vector().x
-	velocity.x = sign(dir) * horizontal_speed
-	set_physics_process(true)
+	if dir != 0:
+		velocity.x = dir * horizontal_speed
 
 func _switch_shoulders(switch: bool) -> void:
 	if switch:
@@ -191,7 +250,7 @@ func _switch_shoulders(switch: bool) -> void:
 		left_shoulder.z_index = 10
 		right_shoulder.z_index = -10
 
-# --- FINAL RESTRUCTURED Animation Logic ---
+# --- Animation Logic ---
 func _update_body_animation() -> void:
 	var just_landed = is_on_floor() and not was_on_floor
 
@@ -230,7 +289,7 @@ func _update_body_animation() -> void:
 	var dir = InputComponent.get_input_vector().x
 	var target_tilt_deg = 0.0
 
-	# FIX: This block sets the PRIMARY animation based on movement input.
+	# This block sets the PRIMARY animation based on movement input.
 	if dir != 0:
 		body.flip_h = (dir < 0)
 		_switch_shoulders(dir < 0)
@@ -249,7 +308,7 @@ func _update_body_animation() -> void:
 		# When idle, the target tilt is zero.
 		target_tilt_deg = 0.0
 
-	# FIX: This block MODIFIES the secondary animation (bobbing) based on shooting state.
+	# This block MODIFIES the secondary animation (bobbing) based on shooting state.
 	if just_shot:
 		bobber_head.stop()
 		bobber_shoulders.stop()
@@ -264,7 +323,7 @@ func _update_body_animation() -> void:
 			bobber_shoulders.start(Vector2(0, 0.8), Bobber.MotionType.FIGURE_EIGHT, 0.5) # Idle bob
 			bobber_weapon.start(Vector2(0, 1.5), Bobber.MotionType.FIGURE_EIGHT, 0.5)
 
-	# NEW: Smoothly tween the visuals to the target tilt.
+	# Smoothly tween the visuals to the target tilt.
 	if not is_equal_approx(visuals.rotation_degrees, target_tilt_deg):
 		if tilt_tween and tilt_tween.is_running():
 			tilt_tween.kill()
@@ -295,16 +354,19 @@ func _on_run_vfx_timer_timeout() -> void:
 
 func _on_recoil_shot(direction: Vector2) -> void:
 	squash_gun.start(Vector2(0.4, 1.3))
-	var shoot_direction = weapon_pivot.global_transform.x.normalized()
-
-	var rot := rad_to_deg(muzzle.global_position.angle_to(shoot_direction))
-	var blast_scale = Vector2(1, -1)
-	var params = {"rotation_degrees": rot, "scale": blast_scale}
-	VFXManager.spawn_vfx("takeoff", muzzle.global_position, params)
-
 	Globals.camera_shake_requested.emit(5.0)
-	_apply_recoil_gun(direction)
-	_apply_recoil_body()
+	_apply_recoil_body() # Apply body recoil for both attack types
+
+	# --- MODIFIED: Check current attack type ---
+	if current_weapon_config and current_weapon_config.attack_data.attach_to == AttackData.AttachTarget.OWNER:
+		# Melee Attack Swing Animation
+		_apply_melee_swing_animation()
+	else:
+		# Ranged Attack Recoil & VFX
+		var rot := rad_to_deg(direction.angle())
+		var params = {"rotation_degrees": rot}
+		VFXManager.spawn_vfx("gun_blast", muzzle.global_position, params, self)
+		_apply_recoil_gun(direction)
 
 func _apply_recoil_body() -> void:
 	bobber_head.stop()
@@ -345,3 +407,35 @@ func _apply_recoil_gun(shoot_direction: Vector2) -> void:
 		 .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(weapon_sprite, "position", original_pos, 0.25) \
 		 .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+# --- NEW: Melee Swing Animation ---
+func _apply_melee_swing_animation() -> void:
+	var tween = create_tween()
+	var original_pos = Vector2(8, 0) # Default position from the scene
+	var swing_pos = Vector2(original_pos.x + 20.0, original_pos.y) # Move forward
+
+	# Use the duration from the melee AttackData to time the animation
+	var swing_duration = current_weapon_config.attack_data.duration if current_weapon_config else 0.3
+	var forward_time = swing_duration * 0.3 # Quick forward lunge
+	var return_time = swing_duration * 0.7 # Slower return to ready
+
+	# Chain tweens for a complete swing animation
+	tween.tween_property(weapon_sprite, "position", swing_pos, forward_time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(weapon_sprite, "position", original_pos, return_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+# --- WEAPON SWITCHING ---
+func _switch_weapon():
+	is_melee_equipped = not is_melee_equipped
+	if is_melee_equipped:
+		current_weapon_config = melee_weapon_config
+	else:
+		current_weapon_config = ranged_weapon_config
+	_update_weapon_display()
+
+func _update_weapon_display():
+	if not current_weapon_config:
+		printerr("Player is missing a weapon configuration!")
+		return
+	
+	weapon_component.base_attack_data = current_weapon_config.attack_data
+	weapon_sprite.texture = current_weapon_config.weapon_texture

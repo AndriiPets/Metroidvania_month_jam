@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://ccau7quygy3pj"]
+
+[ext_resource type="PackedScene" uid="uid://c5cukmhhwrpes" path="res://Gameplay/Components/Mover/mover.tscn" id="2_oiyg3"]
+[ext_resource type="Texture2D" uid="uid://2ul5388s3pns" path="res://icon.svg" id="2_x7rka"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8gbkr"]
+size = Vector2(64, 32)
+
+[node name="Platform" type="Node2D"]
+
+[node name="EndPoint" type="Marker2D" parent="."]
+position = Vector2(0, 79)
+
+[node name="AnimatableBody2D" type="AnimatableBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="AnimatableBody2D"]
+position = Vector2(-8.34465e-07, 0)
+scale = Vector2(0.5, 0.25)
+texture = ExtResource("2_x7rka")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AnimatableBody2D"]
+shape = SubResource("RectangleShape2D_8gbkr")
+
+[node name="Mover" parent="AnimatableBody2D" node_paths=PackedStringArray("target_node", "end_marker") instance=ExtResource("2_oiyg3")]
+target_node = NodePath("..")
+end_marker = NodePath("../../EndPoint")

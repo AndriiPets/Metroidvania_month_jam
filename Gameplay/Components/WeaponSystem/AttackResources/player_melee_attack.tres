@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=3 format=3 uid="uid://dw0x1plmm0rt5"]
+
+[ext_resource type="PackedScene" uid="uid://jnk6lsf6lnwm" path="res://Gameplay/Objects/MeleeAttack/melee_attack.tscn" id="1_3qrn7"]
+[ext_resource type="Script" uid="uid://b5r0io7riy5yg" path="res://Gameplay/Components/ResourceScripts/attack_data.gd" id="1_gpcal"]
+
+[resource]
+script = ExtResource("1_gpcal")
+attach_to = 1
+damage = 1.0
+speed = 0.0
+knockback_strength = 120.0
+projectile_scene = ExtResource("1_3qrn7")
+duration = 0.3
+metadata/_custom_type_script = "uid://b5r0io7riy5yg"
