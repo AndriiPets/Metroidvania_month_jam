@@ -1,7 +1,15 @@
 # Gameplay/Objects/Player/player.gd
-# Gameplay/Objects/Player/player.gd
 extends CharacterBody2D
 class_name Player
+
+# --- Player State ---
+enum State {NORMAL, DODGING}
+var _state: State = State.NORMAL
+
+# --- CONTROL SCHEMES ---
+enum AimMode {MOUSE, DPAD}
+@export var aim_mode: AimMode = AimMode.DPAD
+var dpad_aim_angle: float = 0.0
 
 # --- Movement Variables ---
 var speed: float = 200.0
@@ -10,15 +18,27 @@ var speed: float = 200.0
 @export var run_tilt_angle: float = 8.0
 @export var tilt_speed: float = 0.2
 
+# --- Dodge/Roll Variables ---
+@export_group("Dodging")
+@export var dodge_speed: float = 300.0
+@export var dodge_duration: float = 0.4
+@export var dodge_cooldown: float = 0.8
+## The height of the collision capsule during a dodge.
+@export var dodge_shape_height: float = 20.0
+## The vertical position of the collision capsule during a dodge.
+@export var dodge_shape_position_y: float = 4.0
+var _can_dodge: bool = true
+
+# --- MODIFIED: Store original shape properties ---
+var _normal_shape_height: float
+var _normal_shape_position_y: float
+var _normal_hurtbox_position_y: float
+
 # --- Input Buffering ---
 @export_group("Input Buffering")
-## How long (in seconds) the game remembers a jump input before the player lands.
 @export var jump_buffer_duration: float = 0.15
-
 @onready var jump_buffer_timer: Timer = %JumpTimerBuffer
-
 @export var coyote_time_duration: float = 0.12
-
 @onready var coyote_timer: Timer = %CoyoteTimer
 
 # --- Jump Variables ---
@@ -36,9 +56,8 @@ var speed: float = 200.0
 @onready var horizontal_speed: float = 120.0 / (jump_time_to_peak + jump_time_to_descent)
 
 @export var jump_height := 100.0
-
 @export var jump_distance := 120.0
-@onready var jump_speed := calculate_jump_speed(jump_height, jump_time_to_peak)
+@onready var jump_speed: float = calculate_jump_speed(jump_height, jump_time_to_peak)
 
 @export_group("Weapon Switching")
 @export var ranged_weapon_config: WeaponConfig
@@ -47,18 +66,13 @@ var speed: float = 200.0
 var current_weapon_config: WeaponConfig
 var is_melee_equipped: bool = false
 
-var bullet = preload("res://Gameplay/Objects/Bullet/bullet.tscn")
-
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var friction = 0.12
 var acceleration = 0.25
-
 var was_on_floor: bool = true
 var is_running: bool = false
-
 var run_vfx_timer: Timer
 
-# Get references to the new nodes in the scene tree.
 @onready var body: AnimatedSprite2D = %Body
 @onready var head: Sprite2D = %Head
 @onready var weapon_pivot: Node2D = %WeaponPivot
@@ -74,9 +88,15 @@ var run_vfx_timer: Timer
 @onready var weapon_component: WeaponComponent = %WeaponSystem
 @onready var visuals: Node2D = %Visuals
 
+# --- MODIFIED: Simplified node references ---
+@onready var dodge_timer: Timer = %DodgeTimer
+@onready var dodge_cooldown_timer: Timer = %DodgeCooldownTimer
+@onready var roll_sprite: Sprite2D = %RollSprite
+@onready var collision_shape: CollisionShape2D = %Collider
+@onready var hurtbox_shape: CollisionShape2D = %HurtboxCollider
+
 @onready var health: HealthComponent = %HealthComponent
 
-# Define constants for the head frames to make the code clearer.
 const HEAD_FRAME_STRAIT = 16
 const HEAD_FRAME_UP = 24
 const HEAD_FRAME_DOWN = 8
@@ -84,7 +104,6 @@ const HEAD_FRAME_STRAIT_SIDE = 17
 const HEAD_FRAME_UP_SIDE = 25
 const HEAD_FRAME_DOWN_SIDE = 9
 
-# --- RECOIL VARIABLES ---
 const GUN_RECOIL_DISTANCE: float = -3.0
 const BODY_RECOIL_STRENGTH: float = 10.0
 
@@ -93,7 +112,6 @@ var should_flip: bool = false
 var shot_cooldown_timer: Timer
 var recoil_tween: Tween
 var tilt_tween: Tween
-
 var initial_left_shoulder_pos: Vector2
 var initial_right_shoulder_pos: Vector2
 
@@ -117,86 +135,152 @@ func _ready() -> void:
 
 	weapon_component.recoil_shot.connect(_on_recoil_shot)
 
+	dodge_timer.wait_time = dodge_duration
+	dodge_cooldown_timer.wait_time = dodge_cooldown
+	dodge_timer.one_shot = true
+	dodge_cooldown_timer.one_shot = true
+	dodge_timer.timeout.connect(_on_dodge_finished)
+	dodge_cooldown_timer.timeout.connect(func(): _can_dodge = true)
+	
+	# --- NEW: Store the original shape properties on ready ---
+	_normal_shape_height = collision_shape.shape.height
+	_normal_shape_position_y = collision_shape.position.y
+	_normal_hurtbox_position_y = hurtbox_shape.position.y
+
 func _process(_delta: float) -> void:
-	handle_aiming_and_head()
+	if _state == State.DODGING:
+		return
+
+	if aim_mode == AimMode.MOUSE:
+		handle_mouse_aiming_and_head()
+	else:
+		handle_dpad_aiming_and_head()
 
 func _physics_process(delta: float) -> void:
 	if DungeonManager.current_state != DungeonManager.State.IDLE:
 		velocity = Vector2.ZERO
 		body.play("idle")
 		return
-
+	
 	if not is_on_floor():
 		if velocity.y <= 0.0:
 			velocity.y += up_gravity * delta
 		else:
 			velocity.y += fall_gravity * delta
 
+	match _state:
+		State.NORMAL:
+			_state_normal_physics(delta)
+		State.DODGING:
+			_state_dodging_physics(delta)
+
+	move_and_slide()
+
+	if is_on_floor():
+		coyote_timer.stop()
+	elif was_on_floor and not is_on_floor():
+		coyote_timer.start()
+
+	if _state == State.NORMAL:
+		_update_body_animation()
+	was_on_floor = is_on_floor()
+
+func _state_normal_physics(_delta: float):
 	var dir := InputComponent.get_input_vector().x
 	handle_horizontal_movement(dir)
 
-	# --- NEW: JUMP INPUT with Coyote Time and Buffering ---
 	var can_jump = is_on_floor() or not coyote_timer.is_stopped()
-
 	if Input.is_action_just_pressed("JUMP"):
 		if can_jump:
-			# If we are on the floor or coyote time is active, jump.
 			squash_body.start()
 			_execute_jump()
-			# Consume both coyote time and any active buffer to prevent conflicts.
 			coyote_timer.stop()
 			jump_buffer_timer.stop()
 		else:
-			# If we can't jump, buffer the input.
 			jump_buffer_timer.start()
 
-	# --- Check for and Execute a Buffered Jump ---
-	# This check happens every physics frame.
 	if is_on_floor() and not jump_buffer_timer.is_stopped():
-		# If we've just landed and the buffer is active, execute a jump.
 		squash_body.start()
 		_execute_jump()
-		# Consume the buffer by stopping the timer.
 		jump_buffer_timer.stop()
 	
+	if Input.is_action_just_pressed("DODGE") and _can_dodge:
+		_start_dodge()
+		return
+
 	if Input.is_action_just_pressed("SWITCH_WEAPON"):
 		_switch_weapon()
 
 	if Input.is_action_pressed("SHOOT"):
 		just_shot = true
 		var spawn_position = muzzle.global_position
-		weapon_component.attack(spawn_position, get_global_mouse_position())
-
+		var target_position: Vector2
+		if aim_mode == AimMode.MOUSE:
+			target_position = get_global_mouse_position()
+		else:
+			target_position = weapon_pivot.global_position + (weapon_pivot.transform.x * 1000)
+		weapon_component.attack(spawn_position, target_position)
 	if Input.is_action_just_released("SHOOT"):
 		just_shot = false
 
-	# --- NEW: Variable Jump Height Logic ---
-	# If the jump button is released while the player is moving up...
 	if Input.is_action_just_released("JUMP") and velocity.y < 0:
-		# ...cut their upward velocity to the minimum jump speed.
-		# Using max() ensures we don't accidentally increase their speed if they are already falling.
 		velocity.y = max(velocity.y, min_jump_velocity)
 
-	move_and_slide()
+func _state_dodging_physics(_delta: float):
+	pass
 
-	# ---Coyote Timer Management ---
-	if is_on_floor():
-		# If we are on the ground, the coyote timer should always be stopped.
-		coyote_timer.stop()
-	elif was_on_floor and not is_on_floor():
-		# If we were on the floor last frame but not this one, we just left a ledge.
-		# Start the coyote timer to give the player a grace period.
-		coyote_timer.start()
+# --- MODIFIED: Dodge State Functions ---
 
-	_update_body_animation()
-	was_on_floor = is_on_floor()
+func _start_dodge():
+	_state = State.DODGING
+	_can_dodge = false
+	dodge_timer.start()
+	dodge_cooldown_timer.start()
 
-func handle_aiming_and_head() -> void:
+	var dodge_direction = -1.0 if body.flip_h else 1.0
+	velocity.x = dodge_direction * dodge_speed
+	velocity.y = velocity.y
+
+	visuals.hide()
+	weapon_sprite.hide() # <-- ADD THIS LINE
+	roll_sprite.show()
+	
+	# --- MODIFIED: Alter shape properties directly ---
+	collision_shape.shape.height = dodge_shape_height
+	collision_shape.position.y = dodge_shape_position_y
+	hurtbox_shape.shape.height = dodge_shape_height
+	hurtbox_shape.position.y = dodge_shape_position_y
+	
+	var roll_tween = create_tween().set_loops()
+	roll_tween.tween_property(roll_sprite, "rotation_degrees", 360 * dodge_direction, dodge_duration).from(0)
+
+func _on_dodge_finished():
+	_state = State.NORMAL
+	velocity.x = 0
+
+	squash_body.start()
+	
+	visuals.show()
+	weapon_sprite.show() # <-- ADD THIS LINE
+	roll_sprite.hide()
+	
+	# --- MODIFIED: Restore original shape properties ---
+	collision_shape.shape.height = _normal_shape_height
+	collision_shape.position.y = _normal_shape_position_y
+	hurtbox_shape.shape.height = _normal_shape_height
+	hurtbox_shape.position.y = _normal_hurtbox_position_y
+
+func handle_mouse_aiming_and_head(): # ... no changes
 	var angle_to_mouse = (get_global_mouse_position() - weapon_pivot.global_position).angle()
 	weapon_pivot.rotation = angle_to_mouse
 
 	should_flip = get_global_mouse_position().x < self.global_position.x
+	
 	head.flip_h = should_flip
+	body.flip_h = should_flip
+	_switch_shoulders(should_flip)
+
+	weapon_pivot.position.x = 6 if should_flip else -6
 
 	if should_flip:
 		weapon_pivot.scale.y = -1
@@ -219,30 +303,68 @@ func handle_aiming_and_head() -> void:
 		head.frame = HEAD_FRAME_DOWN
 	elif angle_deg <= -65:
 		head.frame = HEAD_FRAME_UP
+		
+func handle_dpad_aiming_and_head(): # ... no changes
+	var aim_input := Input.get_vector("LEFT", "RIGHT", "UP", "DOWN")
 
-func on_health_change(old: int, new: int) -> void:
+	if aim_input != Vector2.ZERO:
+		var angle = aim_input.angle()
+		dpad_aim_angle = snapped(angle, PI / 4.0)
+	else:
+		dpad_aim_angle = PI if body.flip_h else 0.0
+
+	weapon_pivot.rotation = dpad_aim_angle
+
+	var weapon_should_flip = (dpad_aim_angle > PI / 2.0 or dpad_aim_angle < -PI / 2.0)
+
+	if weapon_should_flip:
+		weapon_pivot.scale.y = -1
+	else:
+		weapon_pivot.scale.y = 1
+
+	head.flip_h = weapon_should_flip
+	body.flip_h = weapon_should_flip
+	_switch_shoulders(weapon_should_flip)
+	
+	weapon_pivot.position.x = 6 if weapon_should_flip else -6
+
+	var angle_deg_for_head = rad_to_deg(dpad_aim_angle)
+
+	if weapon_should_flip:
+		angle_deg_for_head = 180 - angle_deg_for_head
+		if angle_deg_for_head > 180: angle_deg_for_head -= 360
+
+	if angle_deg_for_head > -25 and angle_deg_for_head < 25:
+		head.frame = HEAD_FRAME_STRAIT_SIDE
+	elif angle_deg_for_head >= 25 and angle_deg_for_head < 65:
+		head.frame = HEAD_FRAME_DOWN_SIDE
+	elif angle_deg_for_head <= -25 and angle_deg_for_head > -65:
+		head.frame = HEAD_FRAME_UP_SIDE
+	elif angle_deg_for_head >= 65:
+		head.frame = HEAD_FRAME_DOWN
+	elif angle_deg_for_head <= -65:
+		head.frame = HEAD_FRAME_UP
+
+func on_health_change(old: int, new: int): # ... no changes
 	print("Health changed : %s -> %s" % [old, new])
 
-func handle_horizontal_movement(dir: float) -> void:
+func handle_horizontal_movement(dir: float): # ... no changes
 	if dir != 0:
 		velocity.x = lerp(velocity.x, dir * speed, acceleration)
 	else:
 		velocity.x = lerp(velocity.x, 0.0, friction)
 
-func _execute_jump() -> void:
-	# The takeoff animation should play, but it must not block the physics.
+func _execute_jump(): # ... no changes
 	body.play("takeoff")
 	VFXManager.spawn_vfx("takeoff", global_position + Vector2(0, 15))
 	
-	# Apply the maximum possible jump velocity instantly.
 	velocity.y = jump_velocity
 	
-	# Horizontal speed can still be applied if desired.
 	var dir = InputComponent.get_input_vector().x
 	if dir != 0:
 		velocity.x = dir * horizontal_speed
 
-func _switch_shoulders(switch: bool) -> void:
+func _switch_shoulders(switch: bool): # ... no changes
 	if switch:
 		left_shoulder.z_index = -10
 		right_shoulder.z_index = 10
@@ -250,11 +372,9 @@ func _switch_shoulders(switch: bool) -> void:
 		left_shoulder.z_index = 10
 		right_shoulder.z_index = -10
 
-# --- Animation Logic ---
-func _update_body_animation() -> void:
+func _update_body_animation(): # ... no changes
 	var just_landed = is_on_floor() and not was_on_floor
 
-	# Priority 1: Landing
 	if just_landed:
 		body.play("land")
 		squash_body.start(Vector2(1.3, 0.7))
@@ -263,14 +383,12 @@ func _update_body_animation() -> void:
 		Globals.camera_shake_requested.emit(2.0)
 		return
 
-	# Let one-shot animations finish
 	if body.is_playing() and body.animation in ["takeoff", "land"]:
 		if is_running:
 			is_running = false
 			run_vfx_timer.stop()
 		return
 
-	# Priority 2: In Air
 	if not is_on_floor():
 		if is_running:
 			is_running = false
@@ -285,90 +403,77 @@ func _update_body_animation() -> void:
 			body.play("jump_descend")
 		return
 
-	# --- ON GROUND LOGIC ---
 	var dir = InputComponent.get_input_vector().x
 	var target_tilt_deg = 0.0
 
-	# This block sets the PRIMARY animation based on movement input.
 	if dir != 0:
-		body.flip_h = (dir < 0)
-		_switch_shoulders(dir < 0)
 		body.play("run")
 		if not is_running:
 			is_running = true
 			_spawn_run_puff()
 			run_vfx_timer.start()
-			# Set the target tilt angle based on movement direction
 			target_tilt_deg = - run_tilt_angle if body.flip_h else run_tilt_angle
 	else:
 		body.play("idle")
 		if is_running:
 			is_running = false
 			run_vfx_timer.stop()
-		# When idle, the target tilt is zero.
 		target_tilt_deg = 0.0
 
-	# This block MODIFIES the secondary animation (bobbing) based on shooting state.
 	if just_shot:
 		bobber_head.stop()
 		bobber_shoulders.stop()
 	else:
-		# Not shooting, so apply normal bobbing based on the state set above.
 		if is_running:
 			bobber_head.start(Vector2(0, 1), Bobber.MotionType.ELLIPSE, 2.0)
-			bobber_shoulders.start(Vector2(2, 1), Bobber.MotionType.FIGURE_EIGHT, 1.0) # Run bob
+			bobber_shoulders.start(Vector2(2, 1), Bobber.MotionType.FIGURE_EIGHT, 1.0)
 			bobber_weapon.start(Vector2(1.5, 1.5), Bobber.MotionType.FIGURE_EIGHT, 1.0)
 		else:
 			bobber_head.start(Vector2(0, 0.3), Bobber.MotionType.ELLIPSE, 0.5)
-			bobber_shoulders.start(Vector2(0, 0.8), Bobber.MotionType.FIGURE_EIGHT, 0.5) # Idle bob
+			bobber_shoulders.start(Vector2(0, 0.8), Bobber.MotionType.FIGURE_EIGHT, 0.5)
 			bobber_weapon.start(Vector2(0, 1.5), Bobber.MotionType.FIGURE_EIGHT, 0.5)
 
-	# Smoothly tween the visuals to the target tilt.
 	if not is_equal_approx(visuals.rotation_degrees, target_tilt_deg):
 		if tilt_tween and tilt_tween.is_running():
 			tilt_tween.kill()
 		tilt_tween = create_tween()
 		tilt_tween.tween_property(visuals, "rotation_degrees", target_tilt_deg, tilt_speed).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-#jump arc stuff
-func calculate_jump_speed(height: float, time_to_peak: float) -> float:
+func calculate_jump_speed(height: float, time_to_peak: float): # ... no changes
 	return (-2.0 * height) / time_to_peak
 
-func calculate_jump_gravity(height: float, time_to_peak: float) -> float:
+func calculate_jump_gravity(height: float, time_to_peak: float): # ... no changes
 	return (2.0 * height) / pow(time_to_peak, 2.0)
 
-func calculate_fall_gravity(height: float, time_to_descent: float) -> float:
+func calculate_fall_gravity(height: float, time_to_descent: float): # ... no changes
 	return (2.0 * height) / pow(time_to_descent, 2.0)
 
-func calculate_jump_horizontal_speed(distance: float, time_to_peak: float, time_to_descent: float) -> float:
+func calculate_jump_horizontal_speed(distance: float, time_to_peak: float, time_to_descent: float): # ... no changes
 	return distance / (time_to_peak + time_to_descent)
 
-func _spawn_run_puff() -> void:
+func _spawn_run_puff(): # ... no changes
 	var puff_pos = global_position + Vector2(0, 16)
 	var puff_scale = Vector2(-1, 1) if velocity.x > 0 else Vector2(1, 1)
 	var params = {"scale": puff_scale}
 	VFXManager.spawn_vfx("run_puff", puff_pos, params)
 
-func _on_run_vfx_timer_timeout() -> void:
+func _on_run_vfx_timer_timeout(): # ... no changes
 	_spawn_run_puff()
 
-func _on_recoil_shot(direction: Vector2) -> void:
+func _on_recoil_shot(direction: Vector2): # ... no changes
 	squash_gun.start(Vector2(0.4, 1.3))
 	Globals.camera_shake_requested.emit(5.0)
-	_apply_recoil_body() # Apply body recoil for both attack types
+	_apply_recoil_body()
 
-	# --- MODIFIED: Check current attack type ---
 	if current_weapon_config and current_weapon_config.attack_data.attach_to == AttackData.AttachTarget.OWNER:
-		# Melee Attack Swing Animation
 		_apply_melee_swing_animation()
 	else:
-		# Ranged Attack Recoil & VFX
 		var rot := rad_to_deg(direction.angle())
 		var params = {"rotation_degrees": rot}
 		VFXManager.spawn_vfx("gun_blast", muzzle.global_position, params, self)
 		_apply_recoil_gun(direction)
 
-func _apply_recoil_body() -> void:
+func _apply_recoil_body(): # ... no changes
 	bobber_head.stop()
 	bobber_shoulders.stop()
 
@@ -392,7 +497,7 @@ func _apply_recoil_body() -> void:
 		recoil_tween.tween_property(left_shoulder, "position", initial_left_shoulder_pos, 0.25)
 		recoil_tween.tween_property(right_shoulder, "position", initial_right_shoulder_pos, 0.25)
 
-func _apply_recoil_gun(shoot_direction: Vector2) -> void:
+func _apply_recoil_gun(shoot_direction: Vector2): # ... no changes
 	var recoil_impulse = shoot_direction * BODY_RECOIL_STRENGTH
 	if is_on_floor():
 		velocity.x -= recoil_impulse.x
@@ -408,23 +513,19 @@ func _apply_recoil_gun(shoot_direction: Vector2) -> void:
 	tween.tween_property(weapon_sprite, "position", original_pos, 0.25) \
 		 .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
-# --- NEW: Melee Swing Animation ---
-func _apply_melee_swing_animation() -> void:
+func _apply_melee_swing_animation(): # ... no changes
 	var tween = create_tween()
-	var original_pos = Vector2(8, 0) # Default position from the scene
-	var swing_pos = Vector2(original_pos.x + 20.0, original_pos.y) # Move forward
-
-	# Use the duration from the melee AttackData to time the animation
+	var original_pos = Vector2(8, 0)
+	var swing_pos = Vector2(original_pos.x + 20.0, original_pos.y)
+	
 	var swing_duration = current_weapon_config.attack_data.duration if current_weapon_config else 0.3
-	var forward_time = swing_duration * 0.3 # Quick forward lunge
-	var return_time = swing_duration * 0.7 # Slower return to ready
+	var forward_time = swing_duration * 0.3
+	var return_time = swing_duration * 0.7
 
-	# Chain tweens for a complete swing animation
 	tween.tween_property(weapon_sprite, "position", swing_pos, forward_time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(weapon_sprite, "position", original_pos, return_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
-# --- WEAPON SWITCHING ---
-func _switch_weapon():
+func _switch_weapon(): # ... no changes
 	is_melee_equipped = not is_melee_equipped
 	if is_melee_equipped:
 		current_weapon_config = melee_weapon_config
@@ -432,10 +533,20 @@ func _switch_weapon():
 		current_weapon_config = ranged_weapon_config
 	_update_weapon_display()
 
-func _update_weapon_display():
+func _update_weapon_display(): # ... no changes
 	if not current_weapon_config:
 		printerr("Player is missing a weapon configuration!")
 		return
 	
 	weapon_component.base_attack_data = current_weapon_config.attack_data
 	weapon_sprite.texture = current_weapon_config.weapon_texture
+
+func _unhandled_input(event: InputEvent): # ... no changes
+	if event.is_action_pressed("TOGGLE_AIM_MODE"):
+		if aim_mode == AimMode.MOUSE:
+			aim_mode = AimMode.DPAD
+			print("Switched to D-Pad aiming")
+		else:
+			aim_mode = AimMode.MOUSE
+			print("Switched to Mouse aiming")
+		get_viewport().set_input_as_handled()
